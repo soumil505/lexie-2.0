@@ -35,6 +35,8 @@ def generate_word_pairs(words):
     for word in words:
         syn,ant=get_synonyms_antonyms(word)
         pairs+=[(word,synonym,[1]) for synonym in syn]
+        pairs+=[(synonym,word,[1]) for synonym in syn]
+        pairs+=[(antonym,word,[0]) for antonym in ant]
         pairs+=[(word,antonym,[0]) for antonym in ant]
         typo=list(word)
         typo[random.randint(0,len(typo)-1)]=random.choice(allowed_chars)
@@ -88,8 +90,8 @@ def get_word():
     return word
         
 epochs=100
-num_words=30
-num_batches=10
+num_words=50
+num_batches=20
 hidden_units=16
 
 
@@ -100,7 +102,7 @@ print("model loaded\n\n")
 
 
 with tf.Session() as sess:
-    while True:
+    for i in range(2000):
         words=[get_word() for _ in range(num_words)]
         print(words)
         word_pairs=generate_word_pairs(words)
