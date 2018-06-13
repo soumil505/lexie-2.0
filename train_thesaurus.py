@@ -116,7 +116,7 @@ with tf.Session() as sess:
                                              target: batch_y[batch]})
                 
             print("loss: ",l)
-        saver.save(sess,"/saved/pretrained.ckpt")
+        saver.save(sess,"/output/pretrained.ckpt")
         print("session saved\n")
    
         
