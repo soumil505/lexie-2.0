@@ -11,9 +11,8 @@ from preprocessing import word2mat, get_word, get_synonyms_antonyms
 import random
 import numpy as np
 import time
+
 t=time.time()
-
-
 
 
 allowed_chars="qwertyuiopasdfghjklzxcvbnm'-_1234567890 "
@@ -71,9 +70,9 @@ def generate_batches(seq,num_batches=30,seed=0):
     return [np.asarray(batch) for batch in out1],[np.asarray(batch) for batch in out2],[np.asarray(batch) for batch in out3]
 
         
-epochs=100
-num_words=50
-num_batches=20
+epochs=200
+num_words=70
+num_batches=30
 hidden_units=16
 
 

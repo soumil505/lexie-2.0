@@ -37,9 +37,7 @@ def architecture(allowed_chars=list("qwertyuiopasdfghjklzxcvbnm1234567890-_' "),
         lstm_out1=LSTM(word1,"side1",hidden_units)
         lstm_out2=LSTM(word2,"side2",hidden_units)
         
-        #TODO figure out this cosine distance thing
-        normalize_a = tf.nn.l2_normalize(lstm_out1,1)        
-        normalize_b = tf.nn.l2_normalize(lstm_out2,1)
-        output=tf.reduce_sum(tf.multiply(normalize_a,normalize_b))
+        distance=tf.sqrt(tf.reduce_sum(tf.square(tf.subtract(lstm_out1,lstm_out2)),1,keep_dims=True))
+        output=1-tf.nn.tanh(distance)
         loss=tf.losses.mean_squared_error(target,output)
     return word1,word2,target,output,loss
