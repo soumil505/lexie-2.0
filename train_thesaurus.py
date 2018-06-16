@@ -83,7 +83,7 @@ print("model loaded\n\n")
 
 
 with tf.Session() as sess:
-    while time.time()-t<72000:
+    while time.time()-t<70200:
         words=[get_word() for _ in range(num_words)]
         print(words)
         word_pairs=generate_word_pairs(words)
@@ -99,7 +99,7 @@ with tf.Session() as sess:
                                              target: batch_y[batch]})
                 
             print("loss: ",l,end=" ")
-            print("eta: ",time.strftime("%H:%M:%S", time.gmtime(72000-(time.time()-t))))
+            print("eta: ",time.strftime("%H:%M:%S", time.gmtime(70200-(time.time()-t))))
     saver.save(sess,"/output/pretrained.ckpt")
     print("session saved\n")
    
