@@ -36,19 +36,10 @@ def architecture(allowed_chars=list("qwertyuiopasdfghjklzxcvbnm1234567890-_' "),
     with tf.name_scope("lstm_output"):
         lstm_out1=LSTM(word1,"side1",hidden_units)
         lstm_out2=LSTM(word2,"side2",hidden_units)
-        '''
-        lstm_out=tf.concat([lstm_out1,lstm_out2],axis=1,name="lstm_out") #shape (batch_size,4*n_hidden)
         
-        w1=tf.Variable(tf.random_normal([4*hidden_units,32],name='w1'))
-        w2=tf.Variable(tf.random_normal([32,1],name='w2'))
-        b1=tf.Variable(tf.random_normal([32],name='b1'))
-        b2=tf.Variable(tf.random_normal([1],name='b2'))
-        
-        hidden1=tf.nn.relu(tf.add(tf.matmul(lstm_out,w1),b1))
-        output=tf.add(tf.matmul(hidden1,w2),b2)
-        loss=tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=output,labels=target))
-        '''
-        distance = tf.reduce_sum(tf.square(tf.subtract(lstm_out1,lstm_out2)),1,keep_dims=True)
-        output=tf.nn.sigmoid(tf.divide(tf.constant(1.0),distance))
+        #TODO figure out this cosine distance thing
+        normalize_a = tf.nn.l2_normalize(lstm_out1,1)        
+        normalize_b = tf.nn.l2_normalize(lstm_out2,1)
+        output=tf.reduce_sum(tf.multiply(normalize_a,normalize_b))
         loss=tf.losses.mean_squared_error(target,output)
     return word1,word2,target,output,loss

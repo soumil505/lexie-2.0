@@ -4,7 +4,11 @@ Created on Sat May 26 09:58:48 2018
 
 @author: soumil
 """
+import random
 import numpy as np
+import requests
+from bs4 import BeautifulSoup
+
 
 def remove_stopwords(text,stopwords):
     text=text.lower().split()
@@ -74,4 +78,41 @@ def generate_word_matrix_pairs(text,allowed_chars,stopwords=[],grouped_words=1,s
             continue
         mat_pairs.append([word2mat(word_pair[0],allowed_chars,sequence_length),word2mat(word_pair[1],allowed_chars,sequence_length),word_pair[2]])
     return mat_pairs
-    
+
+
+def get_word():
+    word=""
+    url="http://www.thesaurus.com/list/"+random.choice("qwertyuiopasdfghjklzxcvbnm")+"/"+random.choice("123456789")
+    r=requests.get(url)
+    soup=BeautifulSoup(r.content,"lxml")
+    word_data = soup.find_all("span",{"class":"word"})
+    fail_safe=0
+    while len(word.split())!=1:
+        word=random.choice(word_data).text
+        fail_safe+=1
+        if fail_safe>500:
+            fail_safe=0
+            word=""
+            url="http://www.thesaurus.com/list/"+random.choice("qwertyuiopasdfghjklzxcvbnm")+"/"+random.choice("123456789")
+            r=requests.get(url)
+            soup=BeautifulSoup(r.content,"lxml")
+            word_data = soup.find_all("span",{"class":"word"})
+    return word
+  
+def get_synonyms_antonyms(word):
+    url = "http://www.thesaurus.com/browse/" + word +"?s=t"
+    r = requests.get(url)
+    soup = BeautifulSoup(r.content,"lxml")
+    word_data = soup.find_all("a",{"class":"css-1hn7aky e1s2bo4t1"})
+    syns = [w.text for w in word_data]
+    syn_d = [[1] for _ in syns]
+    word_data = soup.find_all("a",{"class":"css-ebz9vl e1s2bo4t1"})
+    syns += [w.text for w in word_data]
+    syn_d += [[0.9] for _ in word_data]
+    word_data = soup.find_all("a",{"class":"css-1usnxsl e1s2bo4t1"})
+    ants = [w.text for w in word_data]
+    ant_d = [[0] for _ in ants]
+    word_data = soup.find_all("a",{"class":"css-t2pzdt e1s2bo4t1"})
+    ants += [w.text for w in word_data]
+    ant_d += [[0] for _ in word_data]
+    return syns,ants,syn_d,ant_d

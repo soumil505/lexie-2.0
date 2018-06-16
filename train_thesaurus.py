@@ -6,24 +6,14 @@ Created on Mon May 28 22:21:48 2018
 """
 
 import tensorflow as tf
-from model import architecture
-from preprocessing import word2mat
+from model2 import architecture
+from preprocessing import word2mat, get_word, get_synonyms_antonyms
 import random
 import numpy as np
-import requests
-from bs4 import BeautifulSoup
+import time
+t=time.time()
 
 
-
-def get_synonyms_antonyms(word):
-    url = "http://www.thesaurus.com/browse/" + word +"?s=t"
-    r = requests.get(url)
-    soup = BeautifulSoup(r.content,"lxml")
-    word_data = soup.find_all("a",{"class":"css-1hn7aky e1s2bo4t1"})
-    syns = [w.text for w in word_data]
-    word_data = soup.find_all("a",{"class":"css-1usnxsl e1s2bo4t1"})
-    ants = [w.text for w in word_data]
-    return syns,ants
 
 
 allowed_chars="qwertyuiopasdfghjklzxcvbnm'-_1234567890 "
@@ -33,14 +23,15 @@ sequence_length=30
 def generate_word_pairs(words):
     pairs=[]
     for word in words:
-        syn,ant=get_synonyms_antonyms(word)
-        pairs+=[(word,synonym,[1]) for synonym in syn]
-        pairs+=[(synonym,word,[1]) for synonym in syn]
-        pairs+=[(antonym,word,[0]) for antonym in ant]
-        pairs+=[(word,antonym,[0]) for antonym in ant]
+        syn,ant,syn_d,ant_d=get_synonyms_antonyms(word)
+        pairs+=[(word,syn[i],syn_d[i]) for i in range(len(syn))]
+        pairs+=[(syn[i],word,syn_d[i]) for i in range(len(syn))]
+        pairs+=[(ant[i],word,ant_d[i]) for i in range(len(ant))]
+        pairs+=[(word,ant[i],ant_d[i]) for i in range(len(ant))]
         typo=list(word)
         typo[random.randint(0,len(typo)-1)]=random.choice(allowed_chars)
         pairs+=[(word,''.join(typo),[1])]
+        pairs+=[(''.join(typo),word,[1])]
     return pairs
 
 def generate_word_matrix_pairs(word_pairs,allowed_chars,sequence_length=30):
@@ -79,15 +70,6 @@ def generate_batches(seq,num_batches=30,seed=0):
         last += avg
     return [np.asarray(batch) for batch in out1],[np.asarray(batch) for batch in out2],[np.asarray(batch) for batch in out3]
 
-def get_word():
-    word=""
-    while len(word.split())!=1:
-        url="http://www.thesaurus.com/list/"+random.choice("qwertyuiopasdfghjklzxcvbnm")+"/"+random.choice("123456789")
-        r=requests.get(url)
-        soup=BeautifulSoup(r.content,"lxml")
-        word_data = soup.find_all("span",{"class":"word"})
-        word=random.choice(word_data).text
-    return word
         
 epochs=100
 num_words=50
@@ -102,7 +84,7 @@ print("model loaded\n\n")
 
 
 with tf.Session() as sess:
-    for i in range(2000):
+    while time.time()-t<72000:
         words=[get_word() for _ in range(num_words)]
         print(words)
         word_pairs=generate_word_pairs(words)
@@ -117,8 +99,9 @@ with tf.Session() as sess:
                                              word2: batch_word2[batch],
                                              target: batch_y[batch]})
                 
-            print("loss: ",l)
-        saver.save(sess,"/output/pretrained.ckpt")
-        print("session saved\n")
+            print("loss: ",l,end=" ")
+            print("eta: ",time.strftime("%H:%M:%S", time.gmtime(72000-(time.time()-t))))
+    saver.save(sess,"/output/pretrained.ckpt")
+    print("session saved\n")
    
         
